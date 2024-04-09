@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:multi_dropdown/multiselect_dropdown.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -62,8 +62,43 @@ class SecondRoute extends StatefulWidget {
 }
 
 class _SecondRouteState extends State<SecondRoute> {
-  final MultiSelectController _controller = MultiSelectController();
   List<String>? subjects = [];
+  List<MultiSelectItem<String>> preSelectedSubjectList = [];
+  List selectedSubjects = [];
+  Map optionList = {
+    'P': 'Physics',
+    'C': 'Chemistry',
+    'M': 'Maths',
+    'B': 'Biology',
+    'Cs': 'Computer',
+    'A': 'Art',
+    'S': 'Science',
+    'G': 'Geography',
+    'H': 'Hindi',
+    'K': 'Kannada',
+    'EL': 'English literature',
+    'EN': 'English literature',
+    'HC': 'History and civics',
+    'PE': 'Physical education',
+    'mmc': 'MMC'
+  };
+  List<MultiSelectItem<String>> options = [
+    // MultiSelectItem('P', 'Physics'),
+    // MultiSelectItem('C', 'Chemistry'),
+    // MultiSelectItem('M', 'Maths'),
+    // MultiSelectItem('B', 'Biology'),
+    // MultiSelectItem('Cs', 'Computer'),
+    // MultiSelectItem('A', 'Art'),
+    // MultiSelectItem('S', 'Science'),
+    // MultiSelectItem('G', 'Geography'),
+    // MultiSelectItem('H', 'Hindi'),
+    // MultiSelectItem('K', 'Kannada'),
+    // MultiSelectItem('EL', 'English literature'),
+    // MultiSelectItem('EN', 'nglish literature'),
+    // MultiSelectItem('HC', 'History and civics'),
+    // MultiSelectItem('PE', 'Physical education'),
+    // MultiSelectItem('MMC', 'MMC')
+  ];
 
   @override
   void initState() {
@@ -74,10 +109,18 @@ class _SecondRouteState extends State<SecondRoute> {
   // Method to load the shared preference data
   void _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.clear();
+    // prefs.clear();
     setState(() {
       subjects = prefs.getStringList('subjects') ?? [];
+      print(subjects);
       //TODO: set the subject list if its empty
+      if (subjects!.isNotEmpty) {
+        preSelectedSubjectList = subjects!
+            .map((e) =>
+                MultiSelectItem<String>(e.split('__')[1], e.split('__')[0]))
+            .toList();
+      }
+      optionList.forEach((k, v) => options.add(MultiSelectItem('$k', '$v')));
     });
   }
 
@@ -100,33 +143,13 @@ class _SecondRouteState extends State<SecondRoute> {
             Flexible(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 100, maxWidth: 500),
-                child: MultiSelectDropDown(
-                  controller: _controller,
-                  onOptionSelected: (List<ValueItem> selectedOptions) {},
-                  options: const <ValueItem>[
-                    ValueItem(label: 'Physics', value: 'P'),
-                    ValueItem(label: 'Chemistry', value: 'C'),
-                    ValueItem(label: 'Maths', value: 'M'),
-                    ValueItem(label: 'Biology', value: 'B'),
-                    ValueItem(label: 'Computer', value: 'Cs'),
-                    ValueItem(label: 'Art', value: 'A'),
-                    ValueItem(label: 'Science', value: 'S'),
-                    ValueItem(label: 'Geography', value: 'G'),
-                    ValueItem(label: 'Hindi', value: 'H'),
-                    ValueItem(label: 'Kannada', value: 'K'),
-                    ValueItem(label: 'English literature', value: 'EL'),
-                    ValueItem(label: 'English language', value: 'EN'),
-                    ValueItem(label: 'History and civics', value: 'HC'),
-                    ValueItem(label: 'Physical education', value: 'PE'),
-                    ValueItem(label: 'MMC', value: 'MMC'),
-                  ],
-                  selectionType: SelectionType.multi,
-                  chipConfig: const ChipConfig(wrapType: WrapType.scroll),
-                  dropdownHeight: 300,
-                  optionTextStyle: const TextStyle(fontSize: 16),
-                  selectedOptionIcon: const Icon(Icons.check_circle),
-                  searchEnabled: true,
-                  searchLabel: "Search Subject",
+                child: MultiSelectDialogField(
+                  items: options,
+                  // icon: const Icon(Icons.check),
+                  onConfirm: (values) {
+                    selectedSubjects = values;
+                  },
+                  initialValue: preSelectedSubjectList,
                 ),
               ),
             ),
@@ -135,13 +158,12 @@ class _SecondRouteState extends State<SecondRoute> {
         ElevatedButton(
           onPressed: () async {
             final prefs = await SharedPreferences.getInstance();
-            prefs.setStringList(
-                'subjects',
-                _controller.selectedOptions
-                    .map((e) => "${e.label}__${e.value}")
-                    .toList());
+            print(selectedSubjects);
+            List<String> selectedSubjectsStringList = List<String>.from(
+                selectedSubjects.map((e) => '${optionList[e]}__$e'));
+            prefs.setStringList('subjects', selectedSubjectsStringList);
           },
-          child: const Text('Get Selected Options'),
+          child: const Text('Set subjects'),
         ),
       ]),
     );
