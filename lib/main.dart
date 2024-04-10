@@ -54,6 +54,16 @@ class _FirstRouteState extends State<FirstRoute> {
   }
 }
 
+class Subject {
+  final String id;
+  final String name;
+
+  Subject({
+    required this.id,
+    required this.name,
+  });
+}
+
 class SecondRoute extends StatefulWidget {
   const SecondRoute({super.key});
 
@@ -63,9 +73,27 @@ class SecondRoute extends StatefulWidget {
 
 class _SecondRouteState extends State<SecondRoute> {
   List<String>? subjects = [];
-  List<MultiSelectItem<String>> preSelectedSubjectList = [];
+  static List<Subject> preSelectedSubjectList = [];
   List selectedSubjects = [];
-  Map optionList = {
+  static List<Subject> optionList = [
+    // Subject(id: 'P', name: 'Physics'),
+    // Subject(id: 'C', name: 'Chemistry'),
+    // Subject(id: 'M', name: 'Maths'),
+    // Subject(id: 'B', name: 'Biology'),
+    // Subject(id: 'Cs', name: 'Computer'),
+    // Subject(id: 'A', name: 'Art'),
+    // Subject(id: 'S', name: 'Science'),
+    // Subject(id: 'G', name: 'Geography'),
+    // Subject(id: 'H', name: 'Hindi'),
+    // Subject(id: 'K', name: 'Kannada'),
+    // Subject(id: 'EL', name: 'English literature'),
+    // Subject(id: 'EN', name: 'English literature'),
+    // Subject(id: 'HC', name: 'History and civics'),
+    // Subject(id: 'PE', name: 'Physical education'),
+    // Subject(id: 'mmc', name: 'MMC')
+  ];
+  List<MultiSelectItem<Subject>> finalOptions = [];
+  Map subjectsList = {
     'P': 'Physics',
     'C': 'Chemistry',
     'M': 'Maths',
@@ -77,29 +105,11 @@ class _SecondRouteState extends State<SecondRoute> {
     'H': 'Hindi',
     'K': 'Kannada',
     'EL': 'English literature',
-    'EN': 'English literature',
+    'EN': 'nglish literature',
     'HC': 'History and civics',
     'PE': 'Physical education',
-    'mmc': 'MMC'
+    'MMC': 'MMC',
   };
-  List<MultiSelectItem<String>> options = [
-    // MultiSelectItem('P', 'Physics'),
-    // MultiSelectItem('C', 'Chemistry'),
-    // MultiSelectItem('M', 'Maths'),
-    // MultiSelectItem('B', 'Biology'),
-    // MultiSelectItem('Cs', 'Computer'),
-    // MultiSelectItem('A', 'Art'),
-    // MultiSelectItem('S', 'Science'),
-    // MultiSelectItem('G', 'Geography'),
-    // MultiSelectItem('H', 'Hindi'),
-    // MultiSelectItem('K', 'Kannada'),
-    // MultiSelectItem('EL', 'English literature'),
-    // MultiSelectItem('EN', 'nglish literature'),
-    // MultiSelectItem('HC', 'History and civics'),
-    // MultiSelectItem('PE', 'Physical education'),
-    // MultiSelectItem('MMC', 'MMC')
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -112,15 +122,21 @@ class _SecondRouteState extends State<SecondRoute> {
     // prefs.clear();
     setState(() {
       subjects = prefs.getStringList('subjects') ?? [];
-      print(subjects);
+      print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+      print("Subjects $subjects");
       //TODO: set the subject list if its empty
       if (subjects!.isNotEmpty) {
         preSelectedSubjectList = subjects!
-            .map((e) =>
-                MultiSelectItem<String>(e.split('__')[1], e.split('__')[0]))
+            .map((e) => Subject(id: e.split('__')[1], name: e.split('__')[0]))
             .toList();
+        print(preSelectedSubjectList);
       }
-      optionList.forEach((k, v) => options.add(MultiSelectItem('$k', '$v')));
+      subjectsList.forEach((key, value) {
+        optionList.add(Subject(id: key, name: value));
+      }); //Populating subjectsList
+      finalOptions = optionList
+          .map((e) => MultiSelectItem<Subject>(e, e.name))
+          .toList(); //Pupulating final options
     });
   }
 
@@ -144,7 +160,7 @@ class _SecondRouteState extends State<SecondRoute> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 100, maxWidth: 500),
                 child: MultiSelectDialogField(
-                  items: options,
+                  items: finalOptions,
                   // icon: const Icon(Icons.check),
                   onConfirm: (values) {
                     selectedSubjects = values;
@@ -160,7 +176,8 @@ class _SecondRouteState extends State<SecondRoute> {
             final prefs = await SharedPreferences.getInstance();
             print(selectedSubjects);
             List<String> selectedSubjectsStringList = List<String>.from(
-                selectedSubjects.map((e) => '${optionList[e]}__$e'));
+                selectedSubjects.map((e) => '${e.name}__${e.id}'));
+            print(selectedSubjectsStringList);
             prefs.setStringList('subjects', selectedSubjectsStringList);
           },
           child: const Text('Set subjects'),
