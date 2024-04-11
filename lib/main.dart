@@ -58,10 +58,20 @@ class Subject {
   final String id;
   final String name;
 
-  Subject({
+  const Subject({
     required this.id,
     required this.name,
   });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Subject && other.id == id && other.name == name;
+  }
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
 }
 
 class SecondRoute extends StatefulWidget {
@@ -73,7 +83,7 @@ class SecondRoute extends StatefulWidget {
 
 class _SecondRouteState extends State<SecondRoute> {
   List<String>? subjects = [];
-  static List<Subject> preSelectedSubjectList = [];
+  List<Subject> _preSelectedSubjectList = [];
   List selectedSubjects = [];
   static List<Subject> optionList = [
     // Subject(id: 'P', name: 'Physics'),
@@ -122,14 +132,12 @@ class _SecondRouteState extends State<SecondRoute> {
     // prefs.clear();
     setState(() {
       subjects = prefs.getStringList('subjects') ?? [];
-      print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
-      print("Subjects $subjects");
       //TODO: set the subject list if its empty
       if (subjects!.isNotEmpty) {
-        preSelectedSubjectList = subjects!
+        _preSelectedSubjectList = subjects!
             .map((e) => Subject(id: e.split('__')[1], name: e.split('__')[0]))
             .toList();
-        print(preSelectedSubjectList);
+        print(_preSelectedSubjectList);
       }
       subjectsList.forEach((key, value) {
         optionList.add(Subject(id: key, name: value));
@@ -165,7 +173,7 @@ class _SecondRouteState extends State<SecondRoute> {
                   onConfirm: (values) {
                     selectedSubjects = values;
                   },
-                  initialValue: preSelectedSubjectList,
+                  initialValue: _preSelectedSubjectList,
                 ),
               ),
             ),
