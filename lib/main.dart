@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:excel/excel.dart';
+import 'package:path/path.dart';
+import 'dart:io';
+import 'globals.dart' as globals;
 
 void main() {
   runApp(const MaterialApp(
@@ -11,7 +15,9 @@ void main() {
 
 class SingleSubjectInput extends StatelessWidget {
   final String helperText;
-  const SingleSubjectInput({super.key, required this.helperText});
+  final TextEditingController controller;
+  const SingleSubjectInput(
+      {super.key, required this.helperText, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +29,7 @@ class SingleSubjectInput extends StatelessWidget {
           left: 20,
         ),
         child: TextFormField(
+          controller: controller,
           decoration: InputDecoration(
               hintText: helperText,
               contentPadding: EdgeInsets.zero,
@@ -33,9 +40,31 @@ class SingleSubjectInput extends StatelessWidget {
   }
 }
 
-class SubjectInputs extends StatelessWidget {
+class SubjectInputs extends StatefulWidget {
   final String subject;
+
   const SubjectInputs({super.key, required this.subject});
+
+  @override
+  State<SubjectInputs> createState() => _SubjectInputsState();
+}
+
+class _SubjectInputsState extends State<SubjectInputs> {
+  final List CategoryInput = [];
+
+  @override
+  void initState() {
+    super.initState();
+    for (var e in globals.inputCategorys) {
+      final TextEditingController controller = TextEditingController();
+      print(e);
+      globals.inputControllers[e]!.add(controller);
+      CategoryInput.add(SingleSubjectInput(
+        helperText: e,
+        controller: controller,
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,16 +86,12 @@ class SubjectInputs extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 20),
         child: Column(
           children: [
-            Text(subject.split("__")[0],
+            Text(widget.subject.split("__")[0],
                 style: const TextStyle(
                   fontStyle: FontStyle.italic,
                   fontSize: 17,
                 )),
-            const SingleSubjectInput(helperText: "Topic"),
-            const SingleSubjectInput(helperText: "Sub Topic"),
-            const SingleSubjectInput(helperText: "Class work"),
-            const SingleSubjectInput(helperText: "Home work"),
-            const SingleSubjectInput(helperText: "Submission date"),
+            ...CategoryInput
           ],
         ),
       ),
@@ -95,6 +120,9 @@ class _FirstRouteState extends State<FirstRoute> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       subjects = prefs.getStringList('subjects');
+      if (subjects!.isEmpty) {
+        subjects = ["Math__m"];
+      }
     });
   }
 
@@ -131,11 +159,70 @@ class _FirstRouteState extends State<FirstRoute> {
       ),
       body: SingleChildScrollView(
         child: Column(
-          children: subjects!
-              .map((e) => SubjectInputs(
-                    subject: e,
-                  ))
-              .toList(),
+          children: [
+            Column(
+              children: subjects!
+                  .map((e) => SubjectInputs(
+                        subject: e,
+                      ))
+                  .toList(),
+            ),
+            ElevatedButton(
+                onPressed: () async {
+                  Excel excel = Excel.createExcel();
+                  Sheet sheetObject = excel['Sheet1'];
+                  int category = 0, subject = 0;
+                  bool blank = false;
+                  print(globals
+                      .inputControllers[globals.inputCategorys[category]]);
+                  for (int i = 1; i <= subjects!.length * 7; i++) {
+                    if (!blank) {
+                      var cell =
+                          sheetObject.cell(CellIndex.indexByString('A$i'));
+                      cell.value =
+                          TextCellValue(globals.inputCategorys[category]);
+
+                      cell = sheetObject.cell(CellIndex.indexByString('B$i'));
+                      cell.value = TextCellValue(globals
+                          .inputControllers[globals.inputCategorys[category]]![
+                              subject]
+                          .text);
+                    }
+                    if (category == 4) {
+                      category = -1;
+                      blank = true;
+                    }
+                    if (i % 7 == 0) {
+                      subject++;
+                      blank = false;
+                      category = -1;
+                    }
+                    category++;
+                  }
+                  // for (int i = 1; i < subjects!.length * 4; i++) {
+                  //   var cell = sheetObject.cell(CellIndex.indexByString('A$i'));
+                  //   cell.value =
+                  //       TextCellValue(globals.inputCategorys[category]);
+
+                  //   cell = sheetObject.cell(CellIndex.indexByString('B$i'));
+                  //   cell.value = TextCellValue(globals
+                  //       .inputControllers[globals.inputCategorys[category]]![
+                  //           subject]
+                  //       .text);
+                  //   category++;
+                  //   if (category == 4) {
+                  //     category = 0;
+                  //     subject++;
+                  //   }
+                  // }
+                  var fileBytes = excel.save();
+
+                  File(join('E:/output_file_name.xlsx'))
+                    ..createSync(recursive: true)
+                    ..writeAsBytesSync(fileBytes!);
+                },
+                child: const Text("Upload"))
+          ],
         ),
       ),
     );
