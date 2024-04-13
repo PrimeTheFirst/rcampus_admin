@@ -9,6 +9,71 @@ void main() {
   ));
 }
 
+class SingleSubjectInput extends StatelessWidget {
+  final String helperText;
+  const SingleSubjectInput({super.key, required this.helperText});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          right: 20,
+          left: 20,
+        ),
+        child: TextFormField(
+          decoration: InputDecoration(
+              hintText: helperText,
+              contentPadding: EdgeInsets.zero,
+              hintStyle: const TextStyle(fontSize: 12)),
+        ),
+      ),
+    );
+  }
+}
+
+class SubjectInputs extends StatelessWidget {
+  final String subject;
+  const SubjectInputs({super.key, required this.subject});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 30),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(255, 255, 254, 254).withOpacity(0.5),
+            spreadRadius: 7,
+            blurRadius: 7,
+            offset: const Offset(0, 3), // changes position of shadow
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: Column(
+          children: [
+            Text(subject.split("__")[0],
+                style: const TextStyle(
+                  fontStyle: FontStyle.italic,
+                  fontSize: 17,
+                )),
+            const SingleSubjectInput(helperText: "Topic"),
+            const SingleSubjectInput(helperText: "Sub Topic"),
+            const SingleSubjectInput(helperText: "Class work"),
+            const SingleSubjectInput(helperText: "Home work"),
+            const SingleSubjectInput(helperText: "Submission date"),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class FirstRoute extends StatefulWidget {
   const FirstRoute({super.key});
 
@@ -36,21 +101,44 @@ class _FirstRouteState extends State<FirstRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('First Route'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SecondRoute()),
-                );
-              },
-            ),
-          ],
+      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+      appBar: AppBar(
+        foregroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+        title: const Text(
+          "Rcampus admin",
+          style: TextStyle(fontStyle: FontStyle.italic, color: Colors.white),
         ),
-        body: const Text("Cool"));
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.settings,
+              // color: Colors.white,
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SecondRoute()),
+              );
+              if (mounted) {
+                setState(() {
+                  _loadPreferences();
+                });
+              }
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: subjects!
+              .map((e) => SubjectInputs(
+                    subject: e,
+                  ))
+              .toList(),
+        ),
+      ),
+    );
   }
 }
 
@@ -85,23 +173,7 @@ class _SecondRouteState extends State<SecondRoute> {
   List<String>? subjects = [];
   List<Subject> _preSelectedSubjectList = [];
   List selectedSubjects = [];
-  static List<Subject> optionList = [
-    // Subject(id: 'P', name: 'Physics'),
-    // Subject(id: 'C', name: 'Chemistry'),
-    // Subject(id: 'M', name: 'Maths'),
-    // Subject(id: 'B', name: 'Biology'),
-    // Subject(id: 'Cs', name: 'Computer'),
-    // Subject(id: 'A', name: 'Art'),
-    // Subject(id: 'S', name: 'Science'),
-    // Subject(id: 'G', name: 'Geography'),
-    // Subject(id: 'H', name: 'Hindi'),
-    // Subject(id: 'K', name: 'Kannada'),
-    // Subject(id: 'EL', name: 'English literature'),
-    // Subject(id: 'EN', name: 'English literature'),
-    // Subject(id: 'HC', name: 'History and civics'),
-    // Subject(id: 'PE', name: 'Physical education'),
-    // Subject(id: 'mmc', name: 'MMC')
-  ];
+  static List<Subject> optionList = [];
   List<MultiSelectItem<Subject>> finalOptions = [];
   Map subjectsList = {
     'P': 'Physics',
@@ -115,7 +187,7 @@ class _SecondRouteState extends State<SecondRoute> {
     'H': 'Hindi',
     'K': 'Kannada',
     'EL': 'English literature',
-    'EN': 'nglish literature',
+    'EN': 'English Language',
     'HC': 'History and civics',
     'PE': 'Physical education',
     'MMC': 'MMC',
@@ -132,13 +204,13 @@ class _SecondRouteState extends State<SecondRoute> {
     // prefs.clear();
     setState(() {
       subjects = prefs.getStringList('subjects') ?? [];
-      //TODO: set the subject list if its empty
       if (subjects!.isNotEmpty) {
         _preSelectedSubjectList = subjects!
             .map((e) => Subject(id: e.split('__')[1], name: e.split('__')[0]))
             .toList();
-        print(_preSelectedSubjectList);
       }
+      optionList = [];
+      finalOptions = [];
       subjectsList.forEach((key, value) {
         optionList.add(Subject(id: key, name: value));
       }); //Populating subjectsList
@@ -151,41 +223,68 @@ class _SecondRouteState extends State<SecondRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text(
+          'Settings',
+          style: TextStyle(
+            color: Colors.white,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
       ),
       body: Column(children: [
-        Row(
+        Column(
           children: [
             const Padding(
               padding: EdgeInsets.all(8.0),
               child: Text(
                 "Subject selection: ",
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
               ),
             ),
-            Flexible(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 100, maxWidth: 500),
+            Container(
+              margin: const EdgeInsets.only(
+                  left: 20, right: 20, top: 30, bottom: 30),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(255, 255, 254, 254)
+                        .withOpacity(0.5),
+                    spreadRadius: 7,
+                    blurRadius: 7,
+                    offset: const Offset(0, 3), // changes position of shadow
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
                 child: MultiSelectDialogField(
+                  backgroundColor: Colors.white,
+                  checkColor: Colors.white,
                   items: finalOptions,
-                  // icon: const Icon(Icons.check),
                   onConfirm: (values) {
                     selectedSubjects = values;
                   },
                   initialValue: _preSelectedSubjectList,
                 ),
               ),
-            ),
+            )
           ],
         ),
         ElevatedButton(
           onPressed: () async {
             final prefs = await SharedPreferences.getInstance();
-            print(selectedSubjects);
+            prefs.clear();
             List<String> selectedSubjectsStringList = List<String>.from(
                 selectedSubjects.map((e) => '${e.name}__${e.id}'));
-            print(selectedSubjectsStringList);
             prefs.setStringList('subjects', selectedSubjectsStringList);
           },
           child: const Text('Set subjects'),
