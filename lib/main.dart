@@ -1,104 +1,18 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:excel/excel.dart';
 import 'package:path/path.dart';
 import 'dart:io';
+import 'attendence_table.dart';
 import 'globals.dart' as globals;
+import 'subjectInputWidgets.dart';
 
 void main() {
   runApp(const MaterialApp(
     title: 'Navigation Basics',
     home: FirstRoute(),
   ));
-}
-
-class SingleSubjectInput extends StatelessWidget {
-  final String helperText;
-  final TextEditingController controller;
-  const SingleSubjectInput(
-      {super.key, required this.helperText, required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: Padding(
-        padding: const EdgeInsets.only(
-          right: 20,
-          left: 20,
-        ),
-        child: TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            hintText: helperText,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SubjectInputs extends StatefulWidget {
-  final String subject;
-
-  const SubjectInputs({super.key, required this.subject});
-
-  @override
-  State<SubjectInputs> createState() => _SubjectInputsState();
-}
-
-class _SubjectInputsState extends State<SubjectInputs> {
-  final List CategoryInput = [];
-
-  @override
-  void initState() {
-    super.initState();
-    for (var e in globals.inputCategorys) {
-      final TextEditingController controller = TextEditingController();
-      print(e);
-      globals.inputControllers[e]!.add(controller);
-      CategoryInput.add(SingleSubjectInput(
-        helperText: e,
-        controller: controller,
-      ));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 30, right: 30, top: 30),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromARGB(255, 255, 254, 254).withOpacity(0.5),
-            spreadRadius: 8,
-            blurRadius: 8,
-            offset: const Offset(0, 3), // changes position of shadow
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
-        child: Column(
-          children: [
-            Text(widget.subject.split("__")[0],
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  fontSize: 17,
-                )),
-            ...CategoryInput
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class FirstRoute extends StatefulWidget {
@@ -195,44 +109,8 @@ class _FirstRouteState extends State<FirstRoute> {
                         .toList(),
                   ),
                   ElevatedButton(
-                      onPressed: () async {
-                        Excel excel = Excel.createExcel();
-                        Sheet sheetObject = excel['Sheet1'];
-                        int category = 0, subject = 0;
-                        bool blank = false;
-                        print(globals.inputControllers[
-                            globals.inputCategorys[category]]);
-                        for (int i = 1; i <= subjects!.length * 7; i++) {
-                          if (!blank) {
-                            var cell = sheetObject
-                                .cell(CellIndex.indexByString('A$i'));
-                            cell.value =
-                                TextCellValue(globals.inputCategorys[category]);
-
-                            cell = sheetObject
-                                .cell(CellIndex.indexByString('B$i'));
-                            cell.value = TextCellValue(globals
-                                .inputControllers[
-                                    globals.inputCategorys[category]]![subject]
-                                .text);
-                          }
-                          if (category == 4) {
-                            category = -1;
-                            blank = true;
-                          }
-                          if (i % 7 == 0) {
-                            subject++;
-                            blank = false;
-                            category = -1;
-                          }
-                          category++;
-                        }
-
-                        var fileBytes = excel.save();
-
-                        File(join('E:/output_file_name.xlsx'))
-                          ..createSync(recursive: true)
-                          ..writeAsBytesSync(fileBytes!);
+                      onPressed: () {
+                        createAndUploadXL();
                       },
                       child: const Text("Upload"))
                 ],
@@ -242,6 +120,40 @@ class _FirstRouteState extends State<FirstRoute> {
         ),
       ),
     );
+  }
+
+  void createAndUploadXL() {
+    Excel excel = Excel.createExcel();
+    Sheet sheetObject = excel['Sheet1'];
+    int category = 0, subject = 0;
+    bool blank = false;
+    print(globals.inputControllers[globals.inputCategorys[category]]);
+    for (int i = 1; i <= subjects!.length * 7; i++) {
+      if (!blank) {
+        var cell = sheetObject.cell(CellIndex.indexByString('A$i'));
+        cell.value = TextCellValue(globals.inputCategorys[category]);
+
+        cell = sheetObject.cell(CellIndex.indexByString('B$i'));
+        cell.value = TextCellValue(globals
+            .inputControllers[globals.inputCategorys[category]]![subject].text);
+      }
+      if (category == 4) {
+        category = -1;
+        blank = true;
+      }
+      if (i % 7 == 0) {
+        subject++;
+        blank = false;
+        category = -1;
+      }
+      category++;
+    }
+
+    var fileBytes = excel.save();
+
+    File(join('E:/output_file_name.xlsx'))
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(fileBytes!);
   }
 }
 
@@ -393,129 +305,6 @@ class _SecondRouteState extends State<SecondRoute> {
           child: const Text('Set subjects'),
         ),
       ]),
-    );
-  }
-}
-
-class AttendenceTable extends StatelessWidget {
-  const AttendenceTable({super.key});
-  final double? tableNameFontSize = 15;
-  final double? helperTextSize = 12;
-
-  @override
-  Widget build(BuildContext context) {
-    return Table(
-      children: [
-        TableRow(
-          children: [
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.top,
-              child: Container(
-                margin: const EdgeInsets.only(left: 10),
-                width: 32,
-                child: const Text(
-                  "Attendence",
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ),
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.top,
-              child: SizedBox(
-                width: 32,
-                child: Text(
-                  "Present",
-                  style: TextStyle(fontSize: tableNameFontSize),
-                ),
-              ),
-            ),
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.top,
-              child: Container(
-                margin: const EdgeInsets.only(left: 20, right: 20),
-                child: Text(
-                  "Absent",
-                  style: TextStyle(fontSize: tableNameFontSize),
-                ),
-              ),
-            ),
-          ],
-        ),
-        TableRow(
-          children: [
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.middle,
-              child: Container(
-                margin: const EdgeInsets.only(left: 10),
-                child: Text(
-                  "Boys",
-                  style: TextStyle(fontSize: tableNameFontSize),
-                ),
-              ),
-            ),
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.top,
-              child: Container(
-                margin: const EdgeInsets.only(right: 40),
-                child: TextField(
-                  decoration: InputDecoration(
-                      labelStyle: TextStyle(fontSize: helperTextSize),
-                      labelText: "Boys present"),
-                ),
-              ),
-            ),
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.top,
-              child: Container(
-                margin: const EdgeInsets.only(left: 20, right: 20),
-                child: TextField(
-                  decoration: InputDecoration(
-                      labelStyle: TextStyle(fontSize: helperTextSize),
-                      labelText: "Boys absent"),
-                ),
-              ),
-            ),
-          ],
-        ),
-        TableRow(
-          children: [
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.middle,
-              child: Container(
-                margin: const EdgeInsets.only(left: 10),
-                child: Text(
-                  "Girls",
-                  style: TextStyle(fontSize: tableNameFontSize),
-                ),
-              ),
-            ),
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.top,
-              child: Container(
-                margin: const EdgeInsets.only(right: 40),
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: "Girls present",
-                    labelStyle: TextStyle(fontSize: helperTextSize),
-                  ),
-                ),
-              ),
-            ),
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.top,
-              child: Container(
-                margin: const EdgeInsets.only(left: 20, right: 20),
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: "Girls absent",
-                    labelStyle: TextStyle(fontSize: helperTextSize),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
