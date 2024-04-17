@@ -52,6 +52,7 @@ class _SubjectInputsState extends State<SubjectInputs> {
         controller: controller,
       ));
     }
+    globals.inputControllers["Subject"]!.add(widget.subject.split("__")[0]);
   }
 
   @override

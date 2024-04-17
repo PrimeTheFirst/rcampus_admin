@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Map<String, List<TextEditingController>> inputControllers = {
+Map<String, List> inputControllers = {
   "Topic": [],
   "Sub Topic": [],
   "Class work": [],

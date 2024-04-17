@@ -129,18 +129,14 @@ class _FirstRouteState extends State<FirstRoute> {
         "mongodb+srv://prat:anshu9002@rcampus.bxpfcyb.mongodb.net/?retryWrites=true&w=majority&appName=rcampus");
     await db.open();
     List subjectData = [];
-    for (int i = 1; i <= globals.inputControllers[0]!.length; i++) {
+    for (int i = 0; i < globals.inputControllers["Topic"]!.length; i++) {
       subjectData.add({
-        'topic': globals.inputControllers[0]![
-            i], // ignore: collection_methods_unrelated_type
-        'subTopic': globals.inputControllers[1]![
-            i], // ignore: collection_methods_unrelated_type
-        'cw': globals.inputControllers[2]![
-            i], // ignore: collection_methods_unrelated_type
-        'hw': globals.inputControllers[3]![
-            i], // ignore: collection_methods_unrelated_type
-        "sd": globals.inputControllers[4]![
-            i] // ignore: collection_methods_unrelated_type
+        'subject': globals.inputControllers["Subject"]![i],
+        'topic': globals.inputControllers["Topic"]![i].text,
+        'subTopic': globals.inputControllers["Sub Topic"]![i].text,
+        'cw': globals.inputControllers["Class work"]![i].text,
+        'hw': globals.inputControllers["Home work"]![i].text,
+        "sd": globals.inputControllers["Submission date"]![i].text
       });
     }
     var now = DateTime.now();
