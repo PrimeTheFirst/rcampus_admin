@@ -6,11 +6,12 @@ Map<String, List<TextEditingController>> inputControllers = {
   "Class work": [],
   "Home work": [],
   "Submission date": [],
+  "Subject": []
 };
 final List inputCategorys = [
   "Topic",
   "Sub Topic",
   "Class work",
   "Home work",
-  "Submission date"
+  "Submission date",
 ];

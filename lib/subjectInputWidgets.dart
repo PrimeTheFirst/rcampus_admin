@@ -86,3 +86,31 @@ class _SubjectInputsState extends State<SubjectInputs> {
     );
   }
 }
+
+class CustomCard extends StatelessWidget {
+  final Widget child;
+  const CustomCard({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 30),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(255, 255, 254, 254).withOpacity(0.5),
+            spreadRadius: 7,
+            blurRadius: 7,
+            offset: const Offset(0, 3), // changes position of shadow
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: child,
+      ),
+    );
+  }
+}
