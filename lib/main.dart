@@ -113,7 +113,7 @@ class _FirstRouteState extends State<FirstRoute> {
                     margin: const EdgeInsets.only(top: 16, bottom: 16),
                     child: ElevatedButton(
                         onPressed: () {
-                          createAndUploadXL();
+                          createAndUpload();
                         },
                         child: const Text("Upload")),
                   )
@@ -126,7 +126,7 @@ class _FirstRouteState extends State<FirstRoute> {
     );
   }
 
-  void createAndUploadXL() async {
+  void createAndUpload() async {
     final prefs = await SharedPreferences.getInstance();
     var db = await md.Db.create(
         "mongodb+srv://prat:anshu9002@rcampus.bxpfcyb.mongodb.net/?retryWrites=true&w=majority&appName=rcampus");
