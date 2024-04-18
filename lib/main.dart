@@ -109,11 +109,14 @@ class _FirstRouteState extends State<FirstRoute> {
                             ))
                         .toList(),
                   ),
-                  ElevatedButton(
-                      onPressed: () {
-                        createAndUploadXL();
-                      },
-                      child: const Text("Upload"))
+                  Container(
+                    margin: const EdgeInsets.only(top: 16, bottom: 16),
+                    child: ElevatedButton(
+                        onPressed: () {
+                          createAndUploadXL();
+                        },
+                        child: const Text("Upload")),
+                  )
                 ],
               ),
             ),
@@ -128,6 +131,15 @@ class _FirstRouteState extends State<FirstRoute> {
     var db = await md.Db.create(
         "mongodb+srv://prat:anshu9002@rcampus.bxpfcyb.mongodb.net/?retryWrites=true&w=majority&appName=rcampus");
     await db.open();
+    var now = DateTime.now();
+    var formatter = DateFormat('yyyy-MM-dd');
+    String formattedDate = formatter.format(now);
+    var collection = db.collection(prefs.getString('class') ?? '0A');
+
+    final documents = await collection.find({"date": formattedDate}).toList();
+    if (documents.isNotEmpty) {
+      await collection.remove({"date": formattedDate});
+    }
     List subjectData = [];
     for (int i = 0; i < globals.inputControllers["Topic"]!.length; i++) {
       subjectData.add({
@@ -139,10 +151,7 @@ class _FirstRouteState extends State<FirstRoute> {
         "sd": globals.inputControllers["Submission date"]![i].text
       });
     }
-    var now = DateTime.now();
-    var formatter = DateFormat('yyyy-MM-dd');
-    String formattedDate = formatter.format(now);
-    var collection = db.collection(prefs.getString('class') ?? '0A');
+
     await collection.insert({"date": formattedDate, "subjects": subjectData});
   }
 }
@@ -265,7 +274,9 @@ class _SecondRouteState extends State<SecondRoute> {
               backgroundColor: Colors.white,
               checkColor: Colors.white,
               items: finalOptions,
-              onConfirm: (values) {
+              onConfirm: (values) async {
+                final prefs = await SharedPreferences.getInstance();
+                prefs.clear();
                 selectedSubjects = values;
               },
               initialValue: _preSelectedSubjectList,
@@ -307,7 +318,7 @@ class _SecondRouteState extends State<SecondRoute> {
             prefs.setStringList('subjects', selectedSubjectsStringList);
             prefs.setString('class', grade.text + section.text.toUpperCase());
           },
-          child: const Text('Set subjects'),
+          child: const Text('Save'),
         ),
       ]),
     );
