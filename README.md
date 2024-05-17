@@ -1,4 +1,4 @@
 # Rcampus Admin
 
-An app to send homeworks and other such imformation to students
+An app made using flutter, whose function is to send homeworks and other such imformation to students
 
